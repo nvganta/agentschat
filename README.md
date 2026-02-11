@@ -1,36 +1,124 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AgentsChat
 
-## Getting Started
+A group chat where multiple AI coding agents — each connected to their own codebase — discuss, align, and coordinate together with you.
 
-First, run the development server:
+## Quick Start
+
+```bash
+git clone https://github.com/nvganta/agentschat.git
+cd agentschat
+npm install
+```
+
+Create a `.env` file:
+
+```bash
+cp .env.example .env
+```
+
+Add your Anthropic API key to `.env`:
+
+```
+ANTHROPIC_API_KEY=sk-ant-...
+```
+
+Start the app:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## What It Does
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Create rooms** — set up discussion spaces for different topics or projects
+- **Add AI agents** — each agent points to a local codebase and can read/search it
+- **Group chat** — send a message and all agents respond sequentially, each seeing prior responses
+- **@mention agents** — target specific agents with `@AgentName` instead of having all respond
+- **Reorder agents** — control which agent responds first with drag ordering
+- **Rich context sources** — attach PDFs, web pages, Notion pages, or plain text as additional context for any agent
 
-## Learn More
+## How It Works
 
-To learn more about Next.js, take a look at the following resources:
+```
+You send a message
+    |
+AgentsChat identifies which agents should respond (@mentions or all)
+    |
+Each agent runs sequentially in your configured order
+    |
+Agent 1 reads its codebase + context sources -> responds
+    |
+Agent 2 sees Agent 1's response + reads its own codebase -> responds
+    |
+All responses stream back in real-time via SSE
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Each agent uses the Claude Agent SDK with read-only access (`Read`, `Glob`, `Grep`) to its local codebase. Agents cannot modify files.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Architecture
 
-## Deploy on Vercel
+```
+src/
+├── app/
+│   ├── api/
+│   │   └── rooms/          # REST API + SSE streaming
+│   ├── room/[id]/          # Chat room page
+│   └── page.tsx            # Landing page
+├── components/
+│   ├── chat/               # Chat interface, message bubbles, streaming
+│   ├── members/            # Agent sidebar, add dialog, context sources
+│   └── rooms/              # Room list, create dialog
+└── lib/
+    ├── agents/
+    │   ├── runner.ts        # Agent orchestration + system prompt
+    │   ├── types.ts         # AgentAdapter interface
+    │   └── adapters/        # Claude (built), Codex/Gemini (pluggable)
+    ├── context/             # PDF, URL, Notion, text extraction
+    └── db/                  # SQLite + Drizzle ORM
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Tech Stack
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Next.js 15** (App Router, TypeScript)
+- **Claude Agent SDK** for AI agent execution
+- **SQLite** + Drizzle ORM (local, zero setup)
+- **Tailwind CSS** + shadcn/ui
+- **SSE streaming** for real-time responses
+
+## Context Sources
+
+Agents can receive context beyond their codebase:
+
+| Type | How |
+|------|-----|
+| **Manual text** | Type or paste directly |
+| **PDF** | Upload `.pdf` files — text is extracted automatically |
+| **Web URL** | Paste a URL — article content is fetched and extracted |
+| **Notion** | Paste a Notion page URL (requires API key) |
+| **Text files** | Upload `.txt` or `.md` files |
+
+Context sources are managed per-agent from the sidebar.
+
+## Engine Adapters
+
+The agent system uses a pluggable adapter pattern. Currently Claude is fully implemented. Adding a new engine means implementing one interface:
+
+```typescript
+interface AgentAdapter {
+  run(params: AgentRunParams): AsyncGenerator<AgentChunk>;
+}
+```
+
+## Configuration
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `ANTHROPIC_API_KEY` | Default Claude API key | Yes (or set per-agent) |
+| `NOTION_API_KEY` | Notion integration key | Only for Notion context |
+| `DATABASE_PATH` | SQLite database path | No (defaults to `./data/agentschat.db`) |
+
+## License
+
+MIT
