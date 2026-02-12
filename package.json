@@ -1,7 +1,27 @@
 {
   "name": "agentschat",
   "version": "0.1.0",
-  "private": true,
+  "description": "A group chat where multiple AI coding agents — each connected to their own codebase — discuss, align, and coordinate together with you.",
+  "bin": {
+    "agentschat": "./bin/cli.mjs"
+  },
+  "files": [
+    "bin/"
+  ],
+  "keywords": [
+    "ai",
+    "agents",
+    "chat",
+    "claude",
+    "coding",
+    "collaboration"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nvganta/agentschat"
+  },
+  "license": "MIT",
+  "author": "Naveen Ganta",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
