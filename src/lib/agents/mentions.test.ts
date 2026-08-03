@@ -30,6 +30,18 @@ describe("resolveMentions", () => {
     ).toEqual([members[1], members[2]]);
   });
 
+  it("matches a mention after opening punctuation", () => {
+    expect(resolveMentions("(@Frontend Agent please review)", members)).toEqual([
+      members[1],
+    ]);
+  });
+
+  it("matches a mention after inline punctuation", () => {
+    expect(resolveMentions("Hi,@Backend Agent please review", members)).toEqual([
+      members[2],
+    ]);
+  });
+
   it("falls back to every agent for an unknown mention", () => {
     expect(resolveMentions("@Unknown please respond", members)).toEqual(members);
   });

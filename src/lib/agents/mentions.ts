@@ -18,8 +18,8 @@ export function resolveMentions<T extends { name: string }>(
   if (names.length === 0) return members;
 
   const pattern = new RegExp(
-    `(^|\\s)@(${names.map(escapeRegExp).join("|")})(?=\\s|$|[.,!?;:])`,
-    "gi"
+    `(^|[^\\p{L}\\p{N}_])@(${names.map(escapeRegExp).join("|")})(?=$|[^\\p{L}\\p{N}_])`,
+    "giu"
   );
   const mentionedNames = new Set<string>();
   let match: RegExpExecArray | null;
