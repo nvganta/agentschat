@@ -22,11 +22,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Plus } from "lucide-react";
-import type { Member } from "@/lib/db/schema";
+import type { ClientMember } from "@/lib/members";
 
 interface AddMemberDialogProps {
   roomId: number;
-  onMemberAdded: (member: Member) => void;
+  onMemberAdded: (member: ClientMember) => void;
 }
 
 export function AddMemberDialog({ roomId, onMemberAdded }: AddMemberDialogProps) {
@@ -149,7 +149,7 @@ export function AddMemberDialog({ roomId, onMemberAdded }: AddMemberDialogProps)
             </div>
 
             <div>
-              <Label htmlFor="context">Context (Optional)</Label>
+              <Label htmlFor="context">Agent Instructions (Optional)</Label>
               <Textarea
                 id="context"
                 value={formData.context}
@@ -161,8 +161,8 @@ export function AddMemberDialog({ roomId, onMemberAdded }: AddMemberDialogProps)
                 rows={3}
               />
               <p className="text-xs text-muted-foreground mt-1">
-                After adding the agent, you can attach PDFs, URLs, and more via
-                context sources.
+                Define this agent&apos;s role. You can attach PDFs, URLs, and other
+                context after adding it.
               </p>
             </div>
 

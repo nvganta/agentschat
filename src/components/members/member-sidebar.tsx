@@ -7,8 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AddMemberDialog } from "./add-member-dialog";
 import { ContextSourcesManager } from "./context-sources-manager";
+import { EditMemberDialog } from "./edit-member-dialog";
 import { Trash2, Bot, FolderOpen, ChevronUp, ChevronDown } from "lucide-react";
-import type { Member } from "@/lib/db/schema";
+import type { ClientMember } from "@/lib/members";
 import { MEMBERS_CHANGED_EVENT } from "@/lib/events";
 
 interface MemberSidebarProps {
@@ -16,7 +17,7 @@ interface MemberSidebarProps {
 }
 
 export function MemberSidebar({ roomId }: MemberSidebarProps) {
-  const [members, setMembers] = useState<Member[]>([]);
+  const [members, setMembers] = useState<ClientMember[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -40,8 +41,15 @@ export function MemberSidebar({ roomId }: MemberSidebarProps) {
     }
   }
 
-  function handleMemberAdded(member: Member) {
+  function handleMemberAdded(member: ClientMember) {
     setMembers((prev) => [...prev, member]);
+    window.dispatchEvent(new Event(MEMBERS_CHANGED_EVENT));
+  }
+
+  function handleMemberUpdated(member: ClientMember) {
+    setMembers((prev) =>
+      prev.map((current) => (current.id === member.id ? member : current))
+    );
     window.dispatchEvent(new Event(MEMBERS_CHANGED_EVENT));
   }
 
@@ -146,7 +154,7 @@ export function MemberSidebar({ roomId }: MemberSidebarProps) {
                           <Badge variant="secondary" className="text-[10px]">
                             {member.engine}
                           </Badge>
-                          {member.apiKey && (
+                          {member.hasApiKey && (
                             <Badge variant="outline" className="text-[10px]">
                               Custom Key
                             </Badge>
@@ -157,14 +165,23 @@ export function MemberSidebar({ roomId }: MemberSidebarProps) {
                           memberId={member.id}
                         />
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 shrink-0"
-                        onClick={() => handleDelete(member.id)}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
+                      <div className="flex shrink-0">
+                        <EditMemberDialog
+                          roomId={roomId}
+                          member={member}
+                          onMemberUpdated={handleMemberUpdated}
+                        />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 shrink-0"
+                          onClick={() => handleDelete(member.id)}
+                          aria-label={`Remove ${member.name}`}
+                          title="Remove agent"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </div>
                   </CardHeader>
                 </Card>

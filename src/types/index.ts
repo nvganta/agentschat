@@ -35,6 +35,15 @@ export interface CreateMemberRequest {
   apiKey?: string;
 }
 
+export interface UpdateMemberRequest {
+  name: string;
+  repoPath: string;
+  engine?: string;
+  context?: string | null;
+  apiKey?: string;
+  clearApiKey?: boolean;
+}
+
 export type SSEEvent =
   | { type: "start"; memberId: number; memberName: string }
   | { type: "chunk"; memberId: number; content: string }

@@ -48,6 +48,19 @@ export function getMember(id: number) {
   return db.select().from(members).where(eq(members.id, id)).get();
 }
 
+type MemberUpdate = Partial<
+  Pick<NewMember, "name" | "repoPath" | "engine" | "context" | "apiKey">
+>;
+
+export function updateMember(id: number, data: MemberUpdate) {
+  return db
+    .update(members)
+    .set(data)
+    .where(eq(members.id, id))
+    .returning()
+    .get();
+}
+
 export function deleteMember(id: number) {
   return db.delete(members).where(eq(members.id, id)).run();
 }

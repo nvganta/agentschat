@@ -24,12 +24,23 @@ export function buildSystemPrompt(
   conversationHistory: string,
   contextSources: ContextSource[] = []
 ): string {
-  let contextBlock = "";
-  if (contextSources.length > 0) {
-    contextBlock = combineContextSources(contextSources);
-  } else if (member.context) {
-    contextBlock = member.context;
+  const additionalSources = contextSources.filter(
+    (source) =>
+      !(
+        source.type === "manual" &&
+        source.title === "Manual context" &&
+        source.content === member.context
+      )
+  );
+
+  const contextSections: string[] = [];
+  if (member.context) {
+    contextSections.push(`Agent instructions:\n${member.context}`);
   }
+  if (additionalSources.length > 0) {
+    contextSections.push(combineContextSources(additionalSources));
+  }
+  const contextBlock = contextSections.join("\n\n");
 
   return `You are "${member.name}", an AI coding agent in AgentsChat.
 
