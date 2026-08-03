@@ -86,7 +86,24 @@ export function getMessages(roomId: number, limit = 100) {
 }
 
 export function getRecentMessages(roomId: number, limit = 20) {
-  return getMessages(roomId, limit);
+  const recent = db
+    .select({
+      id: messages.id,
+      roomId: messages.roomId,
+      role: messages.role,
+      memberId: messages.memberId,
+      content: messages.content,
+      createdAt: messages.createdAt,
+      memberName: members.name,
+    })
+    .from(messages)
+    .leftJoin(members, eq(messages.memberId, members.id))
+    .where(eq(messages.roomId, roomId))
+    .orderBy(desc(messages.createdAt), desc(messages.id))
+    .limit(limit)
+    .all();
+
+  return recent.reverse();
 }
 
 // ── Context Sources ──

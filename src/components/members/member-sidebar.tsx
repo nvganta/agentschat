@@ -9,6 +9,7 @@ import { AddMemberDialog } from "./add-member-dialog";
 import { ContextSourcesManager } from "./context-sources-manager";
 import { Trash2, Bot, FolderOpen, ChevronUp, ChevronDown } from "lucide-react";
 import type { Member } from "@/lib/db/schema";
+import { MEMBERS_CHANGED_EVENT } from "@/lib/events";
 
 interface MemberSidebarProps {
   roomId: number;
@@ -33,6 +34,7 @@ export function MemberSidebar({ roomId }: MemberSidebarProps) {
         method: "DELETE",
       });
       setMembers((prev) => prev.filter((m) => m.id !== id));
+      window.dispatchEvent(new Event(MEMBERS_CHANGED_EVENT));
     } catch (error) {
       console.error("Error deleting member:", error);
     }
@@ -40,6 +42,7 @@ export function MemberSidebar({ roomId }: MemberSidebarProps) {
 
   function handleMemberAdded(member: Member) {
     setMembers((prev) => [...prev, member]);
+    window.dispatchEvent(new Event(MEMBERS_CHANGED_EVENT));
   }
 
   async function handleMove(index: number, direction: "up" | "down") {
@@ -62,6 +65,7 @@ export function MemberSidebar({ roomId }: MemberSidebarProps) {
           orderedIds: newMembers.map((m) => m.id),
         }),
       });
+      window.dispatchEvent(new Event(MEMBERS_CHANGED_EVENT));
     } catch (error) {
       console.error("Error reordering members:", error);
     }

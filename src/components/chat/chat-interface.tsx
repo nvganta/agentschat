@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { MessageBubble } from "./message-bubble";
 import { StreamingMessageBubble } from "./streaming-message";
 import { MessageInput } from "./message-input";
+import { MEMBERS_CHANGED_EVENT } from "@/lib/events";
 import type {
   MessageWithMember,
   StreamingMessage,
@@ -24,8 +25,7 @@ export function ChatInterface({ roomId }: ChatInterfaceProps) {
   const [loading, setLoading] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Fetch member names for @mention hints
-  useEffect(() => {
+  const loadMemberNames = useCallback(() => {
     fetch(`/api/rooms/${roomId}/members`)
       .then((res) => res.json())
       .then((data: Array<{ name: string }>) =>
@@ -33,6 +33,15 @@ export function ChatInterface({ roomId }: ChatInterfaceProps) {
       )
       .catch(console.error);
   }, [roomId]);
+
+  // Keep @mention hints in sync with changes made in the agent sidebar.
+  useEffect(() => {
+    void loadMemberNames();
+    const handleMembersChanged = () => void loadMemberNames();
+    window.addEventListener(MEMBERS_CHANGED_EVENT, handleMembersChanged);
+    return () =>
+      window.removeEventListener(MEMBERS_CHANGED_EVENT, handleMembersChanged);
+  }, [loadMemberNames]);
 
   useEffect(() => {
     fetch(`/api/rooms/${roomId}/messages`)
