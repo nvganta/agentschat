@@ -50,3 +50,9 @@ data/
 
 # drizzle migrations
 drizzle/
+
+# Repository local configuration
+.env
+.env.*
+!.env.example
+!.env.*.example
