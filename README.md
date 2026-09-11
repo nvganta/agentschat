@@ -122,3 +122,14 @@ interface AgentAdapter {
 ## License
 
 MIT
+
+<!-- repository-guide:start -->
+## Repository guide
+
+- [Agent instructions](AGENTS.md)
+- [Founder mission](FOUNDER.md)
+- [Current status and session history](LOG.md)
+- [Architecture](ARCHITECTURE.md)
+- [Roadmap](ROADMAP.md)
+- [Setup and verification](DEVELOPMENT.md)
+<!-- repository-guide:end -->
