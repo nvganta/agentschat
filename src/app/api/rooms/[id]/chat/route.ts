@@ -6,38 +6,12 @@ import {
   getContextSourcesByMemberIds,
 } from "@/lib/db/queries";
 import { runAgent, formatConversationHistory } from "@/lib/agents/runner";
+import { resolveMentions } from "@/lib/agents/mentions";
 import type { SendMessageRequest, SSEEvent } from "@/types";
 import type { Member, ContextSource } from "@/lib/db/schema";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-/**
- * Parse @mentions from message content.
- * Matches @name (case-insensitive) against member names.
- * Returns matched members, or all members if no @mentions found.
- */
-function resolveMentions(
-  content: string,
-  allMembers: Member[]
-): Member[] {
-  const mentionPattern = /@(\w[\w\s]*?)(?=\s@|\s|$)/g;
-  const mentions: string[] = [];
-  let match;
-
-  while ((match = mentionPattern.exec(content)) !== null) {
-    mentions.push(match[1].trim().toLowerCase());
-  }
-
-  if (mentions.length === 0) return allMembers;
-
-  const matched = allMembers.filter((m) =>
-    mentions.some((mention) => m.name.toLowerCase().includes(mention))
-  );
-
-  // If no valid matches found, fall back to all members
-  return matched.length > 0 ? matched : allMembers;
-}
 
 export async function POST(
   request: NextRequest,
