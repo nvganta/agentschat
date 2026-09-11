@@ -5,6 +5,7 @@ import type * as Schema from "./schema";
 let db: BetterSQLite3Database<typeof Schema>;
 let schema: typeof Schema;
 let getRecentMessages: typeof import("./queries").getRecentMessages;
+let updateMember: typeof import("./queries").updateMember;
 
 beforeAll(async () => {
   process.env.DATABASE_PATH = ":memory:";
@@ -15,6 +16,7 @@ beforeAll(async () => {
 
   db = dbModule.getDb();
   getRecentMessages = queries.getRecentMessages;
+  updateMember = queries.updateMember;
 
   db.$client.exec(`
     CREATE TABLE rooms (
@@ -76,5 +78,36 @@ describe("getRecentMessages", () => {
     expect(recent).toHaveLength(30);
     expect(recent[0].content).toBe("message 6");
     expect(recent.at(-1)?.content).toBe("message 35");
+  });
+});
+
+describe("updateMember", () => {
+  it("updates editable agent settings without recreating the agent", () => {
+    const room = db
+      .insert(schema.rooms)
+      .values({ name: "Editable room" })
+      .returning()
+      .get();
+    const member = db
+      .insert(schema.members)
+      .values({
+        roomId: room.id,
+        name: "Old name",
+        repoPath: "C:\\Projects\\old",
+        engine: "claude",
+      })
+      .returning()
+      .get();
+
+    const updated = updateMember(member.id, {
+      name: "Frontend Agent",
+      repoPath: "C:\\Projects\\new",
+      context: "Own the interface.",
+    });
+
+    expect(updated.id).toBe(member.id);
+    expect(updated.name).toBe("Frontend Agent");
+    expect(updated.repoPath).toBe("C:\\Projects\\new");
+    expect(updated.context).toBe("Own the interface.");
   });
 });
