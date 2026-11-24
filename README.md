@@ -1,135 +1,31 @@
 # AgentsChat
 
-A group chat where multiple AI coding agents — each connected to their own codebase — discuss, align, and coordinate together with you.
+AgentsChat helps a developer discuss a change across related local Git repositories. Add one Claude agent per repository, ask a question, and record the decision and affected files in the room. Agents have read-only code tools; they do not edit your files. Conversations and decisions are stored in local SQLite.
 
-## Quick Start
+## Run locally
 
-```bash
-git clone https://github.com/nvganta/agentschat.git
-cd agentschat
-npm install
-```
+You need Git and Node.js 20.9 or newer (a current LTS release is recommended), plus an Anthropic API key for real agent responses. From this checkout:
 
-Create a `.env` file:
-
-```bash
-cp .env.example .env
-```
-
-Add your Anthropic API key to `.env`:
-
-```
-ANTHROPIC_API_KEY=sk-ant-...
-```
-
-Start the app:
-
-```bash
+```sh
+npm ci
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open http://localhost:3000. The database is created automatically in `data/agentschat.db`. Create a room, add at least two committed Git repositories using absolute paths, and ask what your planned change affects. Add a key in each agent's settings, or set `ANTHROPIC_API_KEY` in your environment before starting. Without a key the room opens, and the agent explains how to configure it. Claude usage incurs provider charges.
 
-## What It Does
+Open **Decision & affected files** in the room to write and save the agreed outcome, then export it as Markdown. The decision is authored by you; it is not an automatically verified inventory.
 
-- **Create rooms** — set up discussion spaces for different topics or projects
-- **Add AI agents** — each agent points to a local codebase and can read/search it
-- **Group chat** — send a message and all agents respond sequentially, each seeing prior responses
-- **@mention agents** — target specific agents with `@AgentName` instead of having all respond
-- **Reorder agents** — control which agent responds first with drag ordering
-- **Rich context sources** — attach PDFs, web pages, Notion pages, or plain text as additional context for any agent
+The published `npx agentschat` launcher clones the public repository, so it runs the published revision rather than uncommitted changes in this checkout. The local commands above are the way to try this worktree.
 
-## How It Works
+## Verification without provider calls
 
-```
-You send a message
-    |
-AgentsChat identifies which agents should respond (@mentions or all)
-    |
-Each agent runs sequentially in your configured order
-    |
-Agent 1 reads its codebase + context sources -> responds
-    |
-Agent 2 sees Agent 1's response + reads its own codebase -> responds
-    |
-All responses stream back in real-time via SSE
+Set `AGENTSCHAT_FAKE_AGENT=1` before starting the server to use the deterministic test adapter. Its responses are explicitly labelled and only list top-level files; they are not code analysis. Set `DATABASE_PATH` to an isolated path for tests. Do not use fake mode to make product decisions.
+
+```sh
+npm run lint
+npx tsc --noEmit
+npm test
+npm run build
 ```
 
-Each agent uses the Claude Agent SDK with read-only access (`Read`, `Glob`, `Grep`) to its local codebase. Agents cannot modify files.
-
-## Architecture
-
-```
-src/
-├── app/
-│   ├── api/
-│   │   └── rooms/          # REST API + SSE streaming
-│   ├── room/[id]/          # Chat room page
-│   └── page.tsx            # Landing page
-├── components/
-│   ├── chat/               # Chat interface, message bubbles, streaming
-│   ├── members/            # Agent sidebar, add dialog, context sources
-│   └── rooms/              # Room list, create dialog
-└── lib/
-    ├── agents/
-    │   ├── runner.ts        # Agent orchestration + system prompt
-    │   ├── types.ts         # AgentAdapter interface
-    │   └── adapters/        # Claude (built), Codex/Gemini (pluggable)
-    ├── context/             # PDF, URL, Notion, text extraction
-    └── db/                  # SQLite + Drizzle ORM
-```
-
-## Tech Stack
-
-- **Next.js 15** (App Router, TypeScript)
-- **Claude Agent SDK** for AI agent execution
-- **SQLite** + Drizzle ORM (local, zero setup)
-- **Tailwind CSS** + shadcn/ui
-- **SSE streaming** for real-time responses
-
-## Context Sources
-
-Agents can receive context beyond their codebase:
-
-| Type | How |
-|------|-----|
-| **Manual text** | Type or paste directly |
-| **PDF** | Upload `.pdf` files — text is extracted automatically |
-| **Web URL** | Paste a URL — article content is fetched and extracted |
-| **Notion** | Paste a Notion page URL (requires API key) |
-| **Text files** | Upload `.txt` or `.md` files |
-
-Context sources are managed per-agent from the sidebar.
-
-## Engine Adapters
-
-The agent system uses a pluggable adapter pattern. Currently Claude is fully implemented. Adding a new engine means implementing one interface:
-
-```typescript
-interface AgentAdapter {
-  run(params: AgentRunParams): AsyncGenerator<AgentChunk>;
-}
-```
-
-## Configuration
-
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `ANTHROPIC_API_KEY` | Default Claude API key | Yes (or set per-agent) |
-| `NOTION_API_KEY` | Notion integration key | Only for Notion context |
-| `DATABASE_PATH` | SQLite database path | No (defaults to `./data/agentschat.db`) |
-
-## License
-
-MIT
-
-<!-- repository-guide:start -->
-## Repository guide
-
-- [Agent instructions](AGENTS.md)
-- [Founder mission](FOUNDER.md)
-- [Current status and session history](LOG.md)
-- [Architecture](ARCHITECTURE.md)
-- [Roadmap](ROADMAP.md)
-- [Setup and verification](DEVELOPMENT.md)
-<!-- repository-guide:end -->
+PDF, URL and Notion imports remain available as optional context, but are not part of the verified cross-repository loop. See [DEVELOPMENT.md](DEVELOPMENT.md) for repository guidance and [LOG.md](LOG.md) for current verification gaps.
