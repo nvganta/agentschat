@@ -1,14 +1,10 @@
 import type { Member, ContextSource } from "@/lib/db/schema";
 import type { AgentAdapter, AgentChunk, Engine } from "./types";
 import { claudeAdapter } from "./adapters/claude";
-import { codexAdapter } from "./adapters/codex";
-import { geminiAdapter } from "./adapters/gemini";
 import { combineContextSources } from "@/lib/context";
 
 const adapters: Record<Engine, AgentAdapter> = {
   claude: claudeAdapter,
-  codex: codexAdapter,
-  gemini: geminiAdapter,
 };
 
 function getAdapter(engine: string): AgentAdapter {
@@ -19,10 +15,36 @@ function getAdapter(engine: string): AgentAdapter {
   return adapter;
 }
 
+export interface RoomRepository {
+  name: string;
+  repoPath: string;
+}
+
+function describeOtherRepositories(
+  member: Member,
+  roomRepositories: RoomRepository[]
+): string {
+  const others = roomRepositories.filter(
+    (repository) =>
+      repository.name !== member.name || repository.repoPath !== member.repoPath
+  );
+  if (others.length === 0) return "";
+
+  const lines = others.map(
+    (repository) => `- ${repository.name}: ${repository.repoPath}`
+  );
+  return `Other repositories in this room, each with its own agent:
+${lines.join("\n")}
+
+When a change in your repository could break or require changes in one of these, say so and name the files on your side that are involved.
+`;
+}
+
 export function buildSystemPrompt(
   member: Member,
   conversationHistory: string,
-  contextSources: ContextSource[] = []
+  contextSources: ContextSource[] = [],
+  roomRepositories: RoomRepository[] = []
 ): string {
   const additionalSources = contextSources.filter(
     (source) =>
@@ -45,8 +67,9 @@ export function buildSystemPrompt(
   return `You are "${member.name}", an AI coding agent in AgentsChat.
 
 You are working on a codebase located at: ${member.repoPath}
+You can read code but must never edit files.
 
-${contextBlock ? `Additional context:\n${contextBlock}\n` : ""}
+${describeOtherRepositories(member, roomRepositories)}${contextBlock ? `Additional context:\n${contextBlock}\n` : ""}
 You are participating in a group chat with other AI agents and a user. Be concise, collaborative, and focus on actionable insights about your codebase.
 
 Previous conversation:
@@ -71,25 +94,51 @@ export interface RunAgentOptions {
   userMessage: string;
   conversationHistory: string;
   contextSources?: ContextSource[];
+  roomRepositories?: RoomRepository[];
 }
 
 export async function* runAgent(
   options: RunAgentOptions
 ): AsyncGenerator<AgentChunk> {
-  const { member, userMessage, conversationHistory, contextSources = [] } = options;
+  const {
+    member,
+    userMessage,
+    conversationHistory,
+    contextSources = [],
+    roomRepositories = [],
+  } = options;
 
-  const apiKey =
-    member.apiKey || process.env.ANTHROPIC_API_KEY || "";
+  const systemPrompt = buildSystemPrompt(
+    member,
+    conversationHistory,
+    contextSources,
+    roomRepositories
+  );
+
+  // Explicit opt-in for local verification: no provider call is made.
+  if (process.env.AGENTSCHAT_FAKE_AGENT === "1") {
+    const { fakeAdapter } = await import("./adapters/fake");
+    yield* fakeAdapter.run({
+      prompt: userMessage,
+      cwd: member.repoPath,
+      systemPrompt,
+      apiKey: "",
+    });
+    return;
+  }
+
+  const apiKey = member.apiKey || process.env.ANTHROPIC_API_KEY || "";
 
   if (!apiKey) {
     yield {
       type: "error",
-      content: `No API key configured for ${member.name}. Set one per-agent or in .env.`,
+      content:
+        `Claude is not configured for ${member.name}. Add an Anthropic API ` +
+        "key in the agent settings or set ANTHROPIC_API_KEY, then restart.",
     };
     return;
   }
 
-  const systemPrompt = buildSystemPrompt(member, conversationHistory, contextSources);
   const adapter = getAdapter(member.engine);
 
   yield* adapter.run({

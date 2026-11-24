@@ -4,6 +4,7 @@ import {
   members,
   messages,
   contextSources,
+  decisions,
   type NewRoom,
   type NewMember,
   type NewMessage,
@@ -66,11 +67,7 @@ export function deleteMember(id: number) {
 }
 
 export function updateMemberOrder(id: number, sortOrder: number) {
-  return db
-    .update(members)
-    .set({ sortOrder })
-    .where(eq(members.id, id))
-    .run();
+  return db.update(members).set({ sortOrder }).where(eq(members.id, id)).run();
 }
 
 // ── Messages ──
@@ -146,4 +143,23 @@ export function getContextSourcesByMemberIds(memberIds: number[]) {
     .where(inArray(contextSources.memberId, memberIds))
     .orderBy(asc(contextSources.createdAt))
     .all();
+}
+
+// ── Decisions ──
+
+export function getDecision(roomId: number): string {
+  const row = db
+    .select({ content: decisions.content })
+    .from(decisions)
+    .where(eq(decisions.roomId, roomId))
+    .get();
+  return row?.content ?? "";
+}
+
+export function saveDecision(roomId: number, content: string) {
+  return db
+    .insert(decisions)
+    .values({ roomId, content })
+    .onConflictDoUpdate({ target: decisions.roomId, set: { content } })
+    .run();
 }

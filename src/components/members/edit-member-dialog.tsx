@@ -10,13 +10,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -152,29 +145,6 @@ export function EditMemberDialog({
               <p className="text-xs text-muted-foreground mt-1">
                 The folder must exist on this computer.
               </p>
-            </div>
-
-            <div>
-              <Label htmlFor={`engine-${member.id}`}>Engine</Label>
-              <Select
-                value={formData.engine}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, engine: value }))
-                }
-              >
-                <SelectTrigger id={`engine-${member.id}`} className="mt-1.5">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="claude">Claude</SelectItem>
-                  <SelectItem value="codex" disabled>
-                    Codex (Phase 4)
-                  </SelectItem>
-                  <SelectItem value="gemini" disabled>
-                    Gemini (Phase 4)
-                  </SelectItem>
-                </SelectContent>
-              </Select>
             </div>
 
             <div>

@@ -4,13 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Trash2,
-  MessageSquare,
-  ArrowRight,
-  Bot,
-  Plus,
-} from "lucide-react";
+import { Trash2, MessageSquare, ArrowRight, Bot, Plus } from "lucide-react";
 import type { Room } from "@/lib/db/schema";
 
 interface RoomWithMeta extends Room {
@@ -84,8 +78,8 @@ export function RoomList() {
         </div>
         <h3 className="text-lg font-semibold mb-2">No rooms yet</h3>
         <p className="text-muted-foreground max-w-sm mb-6">
-          Create your first war room to bring AI coding agents together for a
-          collaborative discussion.
+          Create a room, add an agent for each repository, and ask what a change
+          will affect.
         </p>
       </div>
     );
@@ -139,7 +133,8 @@ export function RoomList() {
                       )}
                     </div>
                     <span className="text-xs text-muted-foreground">
-                      {room.memberCount} agent{room.memberCount !== 1 ? "s" : ""}
+                      {room.memberCount} agent
+                      {room.memberCount !== 1 ? "s" : ""}
                     </span>
                   </>
                 ) : (

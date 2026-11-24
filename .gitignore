@@ -56,3 +56,6 @@ drizzle/
 .env.*
 !.env.example
 !.env.*.example
+
+/.polish-evidence/
+/.npm-polish-cache/

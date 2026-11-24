@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "AgentsChat",
-  description: "Group chat for AI coding agents",
+  description: "Discuss a cross-repository change with one AI agent per repo",
 };
 
 export default function RootLayout({

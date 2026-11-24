@@ -1,27 +1,31 @@
 #!/usr/bin/env node
 
 import { execSync, spawn } from "child_process";
-import { createInterface } from "readline";
-import { existsSync, writeFileSync } from "fs";
-import { join } from "path";
+import { existsSync } from "fs";
 
 const DIR = "agentschat";
-
-function ask(question) {
-  const rl = createInterface({ input: process.stdin, output: process.stdout });
-  return new Promise((resolve) => {
-    rl.question(question, (answer) => {
-      rl.close();
-      resolve(answer.trim());
-    });
-  });
-}
 
 function run(cmd, opts = {}) {
   execSync(cmd, { stdio: "inherit", ...opts });
 }
 
 async function main() {
+  const major = Number(process.versions.node.split(".")[0]);
+  if (
+    major < 20 ||
+    (major === 20 && Number(process.versions.node.split(".")[1]) < 9)
+  ) {
+    throw new Error(
+      "Node.js 20.9 or newer is required. Install a current Node.js LTS release and try again."
+    );
+  }
+  try {
+    execSync("git --version", { stdio: "ignore" });
+  } catch {
+    throw new Error(
+      "Git is required. Install Git from https://git-scm.com and try again."
+    );
+  }
   console.log();
   console.log("  AgentsChat");
   console.log("  A group chat where AI coding agents collaborate with you.");
@@ -38,35 +42,14 @@ async function main() {
 
   // Install dependencies
   console.log("  Installing dependencies...\n");
-  run("npm install", { cwd: DIR });
+  run("npm ci", { cwd: DIR });
   console.log();
 
-  // Set up .env
-  const envPath = join(DIR, ".env");
-  if (!existsSync(envPath)) {
-    const apiKey = await ask(
-      "  Enter your Anthropic API key (or press Enter to skip): "
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.log(
+      "  Claude is not configured. Set ANTHROPIC_API_KEY in your environment or add a key in agent settings.\n"
     );
-    console.log();
-
-    const lines = ["DATABASE_PATH=./data/agentschat.db"];
-    if (apiKey) {
-      lines.push(`ANTHROPIC_API_KEY=${apiKey}`);
-    } else {
-      lines.push("# ANTHROPIC_API_KEY=sk-ant-...");
-      console.log(
-        "  No key set. You can add it later in agentschat/.env\n"
-      );
-    }
-    writeFileSync(envPath, lines.join("\n") + "\n");
-  } else {
-    console.log("  .env already exists — skipping setup.\n");
   }
-
-  // Push schema
-  console.log("  Setting up database...\n");
-  run("npx drizzle-kit push", { cwd: DIR });
-  console.log();
 
   // Start
   console.log("  Starting AgentsChat at http://localhost:3000\n");

@@ -1,6 +1,6 @@
 import { RoomList } from "@/components/rooms/room-list";
 import { CreateRoomDialog } from "@/components/rooms/create-room-dialog";
-import { Bot, GitBranch, MessageSquare, Zap } from "lucide-react";
+import { Eye, FileText, GitBranch, Users } from "lucide-react";
 
 export default function HomePage() {
   return (
@@ -12,14 +12,15 @@ export default function HomePage() {
           <div className="flex flex-col items-center text-center gap-6">
             <div className="flex items-center gap-3 px-4 py-2 rounded-full border bg-background/80 backdrop-blur-sm text-sm text-muted-foreground">
               <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-              Local-first AI collaboration
+              Runs locally on your machine
             </div>
             <h1 className="text-5xl sm:text-6xl font-bold tracking-tight">
               AgentsChat
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl leading-relaxed">
-              A group chat where multiple AI coding agents — each connected to their own
-              codebase — discuss, align, and coordinate together with you.
+              Put one agent per repository in a room with you. Ask what a change
+              in one repo breaks in the others, and leave with a written decision
+              listing the affected files.
             </p>
             <CreateRoomDialog />
           </div>
@@ -30,20 +31,20 @@ export default function HomePage() {
       <div className="container mx-auto max-w-5xl px-4 py-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <FeaturePill
-            icon={<Bot className="h-4 w-4" />}
-            label="Multi-agent chat"
+            icon={<Users className="h-4 w-4" />}
+            label="One agent per repo"
           />
           <FeaturePill
             icon={<GitBranch className="h-4 w-4" />}
-            label="Codebase-aware"
+            label="Repo and branch shown"
           />
           <FeaturePill
-            icon={<Zap className="h-4 w-4" />}
-            label="Real-time streaming"
+            icon={<Eye className="h-4 w-4" />}
+            label="Read-only code access"
           />
           <FeaturePill
-            icon={<MessageSquare className="h-4 w-4" />}
-            label="@mention agents"
+            icon={<FileText className="h-4 w-4" />}
+            label="Decision as Markdown"
           />
         </div>
       </div>

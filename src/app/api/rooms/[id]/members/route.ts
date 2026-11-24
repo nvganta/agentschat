@@ -5,6 +5,7 @@ import { toClientMember } from "@/lib/members";
 import type { CreateMemberRequest } from "@/types";
 import path from "path";
 import fs from "fs";
+import { repositoryBranch } from "@/lib/repository";
 
 function isDirectory(directoryPath: string): boolean {
   try {
@@ -57,6 +58,16 @@ export async function POST(
     if (!isDirectory(repoPath)) {
       return NextResponse.json(
         { error: "Repository path must be an existing folder" },
+        { status: 400 }
+      );
+    }
+
+    if (!repositoryBranch(repoPath)) {
+      return NextResponse.json(
+        {
+          error:
+            "This folder is not a Git repository with a commit. Choose a repository folder and make its first commit.",
+        },
         { status: 400 }
       );
     }

@@ -11,6 +11,7 @@ export const claudeAdapter: AgentAdapter = {
         options: {
           cwd,
           model: "claude-sonnet-4-5-20250929",
+          tools: ["Read", "Glob", "Grep"],
           allowedTools: ["Read", "Glob", "Grep"],
           systemPrompt,
           maxTurns: 50,

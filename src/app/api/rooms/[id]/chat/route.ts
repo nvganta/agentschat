@@ -31,17 +31,8 @@ export async function POST(
     return new Response("Message content is required", { status: 400 });
   }
 
-  // Save user message
-  createMessage({
-    roomId,
-    role: "user",
-    memberId: null,
-    content: body.content.trim(),
-  });
-
   // Get members (already sorted by sortOrder) and history
   const allMembers = getMembers(roomId);
-  const recentMessages = getRecentMessages(roomId, 30);
 
   // Resolve which agents should respond: @mentions or explicit target
   let targetMembers: Member[];
@@ -55,6 +46,16 @@ export async function POST(
     return new Response("No agents available in this room", { status: 400 });
   }
 
+  // Save user message
+  createMessage({
+    roomId,
+    role: "user",
+    memberId: null,
+    content: body.content.trim(),
+  });
+
+  const historyWithUser = getRecentMessages(roomId, 30);
+
   // Batch-load context sources for all target members
   const allContextSources = getContextSourcesByMemberIds(
     targetMembers.map((m) => m.id)
@@ -67,12 +68,17 @@ export async function POST(
   }
 
   const baseHistory = formatConversationHistory(
-    recentMessages.map((m) => ({
+    historyWithUser.map((m) => ({
       role: m.role,
       content: m.content,
       memberName: m.memberName,
     }))
   );
+
+  const roomRepositories = allMembers.map((m) => ({
+    name: m.name,
+    repoPath: m.repoPath,
+  }));
 
   const encoder = new TextEncoder();
 
@@ -112,6 +118,7 @@ export async function POST(
             userMessage: body.content,
             conversationHistory,
             contextSources: contextSourcesByMember.get(member.id) || [],
+            roomRepositories,
           })) {
             if (chunk.type === "chunk") {
               fullResponse += chunk.content;
@@ -146,8 +153,7 @@ export async function POST(
           sendEvent({
             type: "error",
             memberId: member.id,
-            error:
-              error instanceof Error ? error.message : "Unknown error",
+            error: error instanceof Error ? error.message : "Unknown error",
           });
         }
       }

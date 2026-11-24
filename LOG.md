@@ -8,7 +8,7 @@ any working session. Newest entries at the top.
 - State: parked
 - Live URL: none, runs locally via npx CLI
 - Stranger test: not passing
-- Currently working on: nothing in flight; last session added agent editing and safe member data
+- Currently working on: validate a real cross-repository discussion and an unaided stranger test
 - Blocked on investor: nothing
 
 ## Decisions
@@ -17,6 +17,10 @@ any working session. Newest entries at the top.
 - 2026-02-11: Chose Next.js + Drizzle with local data; multi-agent chat state lives in the app, not a cloud service.
 
 ## Session notes
+
+- 2026-11-24: Reviewed and finished the polish run. Each agent's prompt now lists the other repositories in the room. Decisions moved into the Drizzle schema. Upgraded next and eslint-config-next to 16.4.6 and shadcn to 4.23.0 after `npm audit fix`; audit went from 37 (2 critical) to 8 moderate, all in dev-only tooling. Turned off Next's AGENTS.md rewriting. Removed unused select and separator components. Lint, typecheck, 16 tests and build pass; a headless walk with three temp fixtures, the fake adapter and a no-key server passed at desktop and 390px. A real Claude discussion and the stranger test remain unverified.
+
+- 2026-11-23: Added fresh SQLite initialization, Git repository and branch checks, a read-only tool restriction, a labelled fake adapter, and a saved Markdown decision; removed placeholder engines and improved setup and mobile layout. `npm run lint`, `npx tsc --noEmit`, `npm test` (15 tests), `npm run build`, and a headless Playwright three-fixture discussion/export walkthrough passed. The initial npm install failed on shared-cache permissions; retry with a local cache passed with 37 reported vulnerabilities. A real provider-backed discussion, context imports, published npx revision, and unaided stranger test remain unverified.
 
 - 2026-09-10: Prepared a draft PR from an isolated working tree. Repository handoff and staged-diff checks pass in the isolated PR tree. This documentation PR does not claim a new application runtime acceptance test.
 

@@ -1,3 +1,4 @@
+import { Decision } from "@/components/chat/decision";
 import { ChatInterface } from "@/components/chat/chat-interface";
 import { MemberSidebar } from "@/components/members/member-sidebar";
 import { getRoom } from "@/lib/db/queries";
@@ -32,11 +33,12 @@ export default async function RoomPage({ params }: RoomPageProps) {
         </div>
       </div>
 
-      <div className="flex-1 flex overflow-hidden">
-        <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col-reverse md:flex-row overflow-y-auto md:overflow-hidden">
+        <div className="flex-1 min-h-[55vh] flex flex-col">
+          <Decision roomId={room.id} />
           <ChatInterface roomId={room.id} />
         </div>
-        <div className="w-80 border-l bg-muted/20">
+        <div className="w-full md:w-80 md:border-l border-b bg-muted/20 max-h-[35vh] md:max-h-none overflow-y-auto">
           <MemberSidebar roomId={room.id} />
         </div>
       </div>
