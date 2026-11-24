@@ -2,7 +2,9 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import type * as Schema from "./schema";
 
-let db: BetterSQLite3Database<typeof Schema>;
+let db: BetterSQLite3Database<typeof Schema> & {
+  $client: import("better-sqlite3").Database;
+};
 let schema: typeof Schema;
 let getRecentMessages: typeof import("./queries").getRecentMessages;
 let updateMember: typeof import("./queries").updateMember;
@@ -19,12 +21,12 @@ beforeAll(async () => {
   updateMember = queries.updateMember;
 
   db.$client.exec(`
-    CREATE TABLE rooms (
+    CREATE TABLE IF NOT EXISTS rooms (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       created_at INTEGER NOT NULL DEFAULT (unixepoch())
     );
-    CREATE TABLE members (
+    CREATE TABLE IF NOT EXISTS members (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       room_id INTEGER NOT NULL,
       name TEXT NOT NULL,
@@ -35,7 +37,7 @@ beforeAll(async () => {
       api_key TEXT,
       created_at INTEGER NOT NULL DEFAULT (unixepoch())
     );
-    CREATE TABLE messages (
+    CREATE TABLE IF NOT EXISTS messages (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       room_id INTEGER NOT NULL,
       role TEXT NOT NULL,
