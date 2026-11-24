@@ -57,6 +57,13 @@ export const contextSources = sqliteTable("context_sources", {
     .default(sql`(unixepoch())`),
 });
 
+export const decisions = sqliteTable("decisions", {
+  roomId: integer("room_id")
+    .primaryKey()
+    .references(() => rooms.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+});
+
 export type Room = typeof rooms.$inferSelect;
 export type NewRoom = typeof rooms.$inferInsert;
 export type Member = typeof members.$inferSelect;

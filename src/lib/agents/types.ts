@@ -14,5 +14,5 @@ export interface AgentAdapter {
   run(params: AgentRunParams): AsyncGenerator<AgentChunk>;
 }
 
-export const SUPPORTED_ENGINES = ["claude", "codex", "gemini"] as const;
+export const SUPPORTED_ENGINES = ["claude"] as const;
 export type Engine = (typeof SUPPORTED_ENGINES)[number];

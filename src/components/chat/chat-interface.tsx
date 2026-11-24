@@ -5,11 +5,12 @@ import { MessageBubble } from "./message-bubble";
 import { StreamingMessageBubble } from "./streaming-message";
 import { MessageInput } from "./message-input";
 import { MEMBERS_CHANGED_EVENT } from "@/lib/events";
-import type {
-  MessageWithMember,
-  StreamingMessage,
-  SSEEvent,
-} from "@/types";
+import type { MessageWithMember, StreamingMessage, SSEEvent } from "@/types";
+
+// Temporary id for the optimistic user message until history reloads.
+function optimisticMessageId(): number {
+  return Date.now();
+}
 
 interface ChatInterfaceProps {
   roomId: number;
@@ -22,6 +23,7 @@ export function ChatInterface({ roomId }: ChatInterfaceProps) {
   >(new Map());
   const [memberNames, setMemberNames] = useState<string[]>([]);
   const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState("");
   const [loading, setLoading] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -68,10 +70,11 @@ export function ChatInterface({ roomId }: ChatInterfaceProps) {
 
   async function sendMessage(content: string, targetMemberId?: number) {
     setIsSending(true);
+    setSendError("");
 
     // Optimistic user message
     const userMessage: MessageWithMember = {
-      id: Date.now(),
+      id: optimisticMessageId(),
       roomId,
       role: "user",
       memberId: null,
@@ -88,7 +91,7 @@ export function ChatInterface({ roomId }: ChatInterfaceProps) {
         body: JSON.stringify({ content, targetMemberId }),
       });
 
-      if (!response.ok) throw new Error("Failed to send message");
+      if (!response.ok) throw new Error(await response.text());
 
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
@@ -128,7 +131,14 @@ export function ChatInterface({ roomId }: ChatInterfaceProps) {
         }
       }
     } catch (error) {
-      console.error("Error sending message:", error);
+      setMessages((prev) =>
+        prev.filter((message) => message.id !== userMessage.id)
+      );
+      setSendError(
+        error instanceof Error
+          ? error.message
+          : "Could not send. Please try again."
+      );
     } finally {
       setIsSending(false);
       setStreamingMessages(new Map());
@@ -243,6 +253,11 @@ export function ChatInterface({ roomId }: ChatInterfaceProps) {
         </div>
       </div>
       <div className="border-t p-4">
+        {sendError && (
+          <p role="alert" className="mb-2 text-sm text-destructive">
+            {sendError}
+          </p>
+        )}
         <MessageInput
           onSend={sendMessage}
           disabled={isSending}

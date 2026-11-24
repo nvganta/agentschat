@@ -150,6 +150,9 @@ export function MemberSidebar({ roomId }: MemberSidebarProps) {
                             {member.repoPath.split(/[/\\]/).pop()}
                           </span>
                         </div>
+                        <p className="text-xs text-muted-foreground">
+                          Branch: {member.branch || "unavailable"}
+                        </p>
                         <div className="flex gap-1 flex-wrap">
                           <Badge variant="secondary" className="text-[10px]">
                             {member.engine}
