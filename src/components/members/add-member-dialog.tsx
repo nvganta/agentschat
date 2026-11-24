@@ -10,13 +10,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -123,29 +116,6 @@ export function AddMemberDialog({ roomId, onMemberAdded }: AddMemberDialogProps)
               <p className="text-xs text-muted-foreground mt-1">
                 Absolute path to a local repository
               </p>
-            </div>
-
-            <div>
-              <Label htmlFor="engine">Engine</Label>
-              <Select
-                value={formData.engine}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, engine: value }))
-                }
-              >
-                <SelectTrigger className="mt-1.5">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="claude">Claude</SelectItem>
-                  <SelectItem value="codex" disabled>
-                    Codex (coming soon)
-                  </SelectItem>
-                  <SelectItem value="gemini" disabled>
-                    Gemini (coming soon)
-                  </SelectItem>
-                </SelectContent>
-              </Select>
             </div>
 
             <div>
