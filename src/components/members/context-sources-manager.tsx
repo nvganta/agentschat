@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useState, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -59,16 +59,19 @@ export function ContextSourcesManager({
 
   const apiBase = `/api/rooms/${roomId}/members/${memberId}/context-sources`;
 
-  useEffect(() => {
-    if (dialogOpen) {
-      setLoading(true);
-      fetch(apiBase)
-        .then((res) => res.json())
-        .then(setSources)
-        .catch(console.error)
-        .finally(() => setLoading(false));
-    }
-  }, [dialogOpen, apiBase]);
+  function loadSources() {
+    setLoading(true);
+    fetch(apiBase)
+      .then((res) => res.json())
+      .then(setSources)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }
+
+  function handleOpenChange(open: boolean) {
+    setDialogOpen(open);
+    if (open) loadSources();
+  }
 
   function resetForm() {
     setManualTitle("");
@@ -210,7 +213,7 @@ export function ContextSourcesManager({
 
   return (
     <>
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={handleOpenChange}>
         <DialogTrigger asChild>
           <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors w-full">
             <FileText className="h-3 w-3 shrink-0" />
