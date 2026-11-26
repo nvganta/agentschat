@@ -2,6 +2,7 @@
 
 import { execSync, spawn } from "child_process";
 import { existsSync } from "fs";
+import { checkExistingCheckout } from "./checkout.mjs";
 
 const DIR = "agentschat";
 
@@ -33,7 +34,13 @@ async function main() {
 
   // Clone or reuse
   if (existsSync(DIR)) {
-    console.log(`  Directory "${DIR}/" already exists — using it.\n`);
+    const problem = checkExistingCheckout(DIR);
+    if (problem) {
+      throw new Error(
+        `${problem} Move or rename it, or run this from another folder, and try again.`
+      );
+    }
+    console.log(`  Directory "${DIR}/" is an AgentsChat clone, using it.\n`);
   } else {
     console.log("  Cloning repository...\n");
     run(`git clone --depth 1 https://github.com/nvganta/agentschat.git ${DIR}`);
