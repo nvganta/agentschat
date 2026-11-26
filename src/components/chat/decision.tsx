@@ -17,25 +17,47 @@ interface DecisionProps {
 
 export function Decision({ roomId }: DecisionProps) {
   const [content, setContent] = useState("");
-  const [status, setStatus] = useState("Loading decision…");
+  const [saveStatus, setSaveStatus] = useState("");
+  // Editing and saving wait for the saved decision, so a slow or failed load
+  // can't let Save overwrite it with an empty box. Each load is keyed by room
+  // and attempt, so a load for another room or an earlier attempt never counts.
+  const [attempt, setAttempt] = useState(0);
+  const key = `${roomId}:${attempt}`;
+  const [result, setResult] = useState<{ key: string; ok: boolean } | null>(null);
+  const load = result?.key !== key ? "loading" : result.ok ? "loaded" : "failed";
+  const loaded = load === "loaded";
 
   useEffect(() => {
+    let current = true;
     fetch(`/api/rooms/${roomId}/decision`)
       .then((response) => {
         if (!response.ok) throw new Error("Failed to load decision");
         return response.json();
       })
       .then((data: { content: string }) => {
+        if (!current) return;
         setContent(data.content);
-        setStatus("");
+        setSaveStatus("");
+        setResult({ key, ok: true });
       })
-      .catch(() =>
-        setStatus("Could not load the decision. Refresh to try again.")
-      );
-  }, [roomId]);
+      .catch(() => {
+        if (current) setResult({ key, ok: false });
+      });
+    return () => {
+      current = false;
+    };
+  }, [roomId, key]);
+
+  const status =
+    load === "loading"
+      ? "Loading decision…"
+      : load === "failed"
+        ? "Could not load the decision."
+        : saveStatus;
 
   async function save() {
-    setStatus("Saving…");
+    if (!loaded) return;
+    setSaveStatus("Saving…");
     try {
       const response = await fetch(`/api/rooms/${roomId}/decision`, {
         method: "PUT",
@@ -43,9 +65,9 @@ export function Decision({ roomId }: DecisionProps) {
         body: JSON.stringify({ content }),
       });
       if (!response.ok) throw new Error("Failed to save decision");
-      setStatus("Saved in this room.");
+      setSaveStatus("Saved in this room.");
     } catch {
-      setStatus("Could not save. Try again.");
+      setSaveStatus("Could not save. Try again.");
     }
   }
 
@@ -73,18 +95,28 @@ export function Decision({ roomId }: DecisionProps) {
           aria-label="Decision and affected files"
           className="min-h-32"
           placeholder={PLACEHOLDER}
-          value={content}
+          value={loaded ? content : ""}
+          disabled={!loaded}
           onChange={(event) => setContent(event.target.value)}
         />
         <div className="flex gap-2">
-          <Button size="sm" onClick={save}>
+          <Button size="sm" onClick={save} disabled={!loaded}>
             Save decision
           </Button>
+          {load === "failed" && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setAttempt((n) => n + 1)}
+            >
+              Try again
+            </Button>
+          )}
           <Button
             size="sm"
             variant="outline"
             onClick={exportMarkdown}
-            disabled={!content}
+            disabled={!loaded || !content}
           >
             Export Markdown
           </Button>

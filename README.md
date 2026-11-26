@@ -1,6 +1,6 @@
 # AgentsChat
 
-AgentsChat helps a developer discuss a change across related local Git repositories. Add one Claude agent per repository, ask a question, and record the decision and affected files in the room. Agents have read-only code tools; they do not edit your files. Conversations and decisions are stored in local SQLite.
+AgentsChat helps a developer discuss a change across related local Git repositories. Add one Claude agent per repository, ask a question, and record the decision and affected files in the room. Agents have read-only code tools (Read, Glob and Grep) that only reach their own repository folder: any path outside it, by `..`, absolute path or symlink, is denied. They do not edit your files. Conversations and decisions are stored in local SQLite.
 
 ## Run locally
 
@@ -15,7 +15,7 @@ Open http://localhost:3000. The database is created automatically in `data/agent
 
 Open **Decision & affected files** in the room to write and save the agreed outcome, then export it as Markdown. The decision is authored by you; it is not an automatically verified inventory.
 
-The published `npx agentschat` launcher clones the public repository, so it runs the published revision rather than uncommitted changes in this checkout. The local commands above are the way to try this worktree.
+The published `npx agentschat` launcher clones the public repository, so it runs the published revision rather than uncommitted changes in this checkout. If an `agentschat/` folder already exists where you run it, the launcher reuses it only when it is a clone of `nvganta/agentschat`; otherwise it stops before running `npm ci`. The local commands above are the way to try this worktree.
 
 ## Verification without provider calls
 
