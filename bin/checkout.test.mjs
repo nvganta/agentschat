@@ -23,9 +23,27 @@ afterEach(() => {
 });
 
 describe("checkExistingCheckout", () => {
-  it("accepts a clone of nvganta/agentschat over https or ssh", () => {
-    expect(checkExistingCheckout(folder("agentschat", "https://github.com/nvganta/agentschat.git"))).toBeNull();
-    expect(checkExistingCheckout(folder("agentschat", "git@github.com:nvganta/agentschat.git"))).toBeNull();
+  it.each([
+    "https://github.com/nvganta/agentschat",
+    "https://github.com/nvganta/agentschat.git",
+    "git@github.com:nvganta/agentschat",
+    "git@github.com:nvganta/agentschat.git",
+    "ssh://git@github.com/nvganta/agentschat",
+    "ssh://git@github.com/nvganta/agentschat.git",
+  ])("accepts a clone whose origin is %s", (origin) => {
+    expect(checkExistingCheckout(folder("agentschat", origin))).toBeNull();
+  });
+
+  it.each([
+    "https://evil.com/github.com/nvganta/agentschat",
+    "https://evil.com/github.com/nvganta/agentschat.git",
+    "git@evil.com:github.com/nvganta/agentschat.git",
+    "https://github.com.evil.com/nvganta/agentschat.git",
+    "https://github.com/nvganta/agentschat.git/../../someone/other",
+  ])("rejects an origin that only contains the upstream: %s", (origin) => {
+    expect(checkExistingCheckout(folder("agentschat", origin))).toMatch(
+      /not github.com\/nvganta\/agentschat/
+    );
   });
 
   it("rejects a folder with no package.json or another package's", () => {

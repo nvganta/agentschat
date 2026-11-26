@@ -2,7 +2,10 @@ import { execFileSync } from "child_process";
 import { readFileSync, realpathSync, statSync } from "fs";
 import { join } from "path";
 
-const UPSTREAM = /github\.com[/:]nvganta\/agentschat(\.git)?\/?$/i;
+// The whole origin URL must be one of GitHub's https, scp-style or ssh forms
+// for nvganta/agentschat, so a host like evil.com/github.com/... can't pass.
+const UPSTREAM =
+  /^(?:https:\/\/github\.com\/|git@github\.com:|ssh:\/\/git@github\.com\/)nvganta\/agentschat(?:\.git)?$/i;
 
 function git(dir, args) {
   return execFileSync("git", ["-C", dir, ...args], {
